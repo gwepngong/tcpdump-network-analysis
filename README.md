@@ -21,35 +21,35 @@ The objective was to capture and analyze DNS (UDP port 53) and http(s)( port 80,
 
 Below are the primary `tcpdump` commands executed during this investigation.
 
-1. Capturing all DNS (UDP port 53) traffic on `eth0` and saving to a file:
+1. Capturing all DNS (UDP port 53) traffic on `eth2` and saving to a file:
 ```bash
-sudo tcpdump -i eth0 -nn -s0 port 53 -w dns_capture.pcap
+sudo tcpdump -i eth2 -nn -s0 port 53 -w dns_capture.pcap
 
      Explanation:
-     * -i eth0: Specifies the network interface eth0.
+     * -i eth2: Specifies the network interface eth2.
      * -nn: Don't convert hostnames and port numbers (display numerically).
      * -s0: Snaplen of 0, meaning capture the entire packet.
      * port 53: Filters for traffic on port 53 (DNS).
      * -w dns_capture.pcap: Writes the raw packet data to dns_capture.pcap for later analysis with tools like Wireshark (though not shown here).
      2. Displaying real-time DNS queries and responses (textual output):
-     sudo tcpdump -i eth0 -nn -s0 port 53 and udp and 'not host 192.168.1.1'
+     sudo tcpdump -i eth2 -nn -s0 port 53 and udp and 'not host <IP>'
 
      Explanation:
-     * Adds udp to specify UDP protocol.
-     * 'not host 192.168.1.1': Excludes traffic to/from the local router/DNS server to focus on client queries.
-     3. Filtering for specific DNS queries (e.g., for malicious.com):
-     sudo tcpdump -i eth0 -nn -s0 port 53 and udp | grep "malicious.com"
+     * Added udp to specify UDP protocol.
+     * 'not host <IP>': Excludes traffic to/from the local router/DNS server to focus on client queries.
+     3. Filtering for specific DNS queries; in this case "malicious.com".
+     sudo tcpdump -i eth2 -nn -s0 port 53 and udp | grep "malicious.com"
 
      Explanation:
      * Pipes the tcpdump output to grep to find specific strings.
      Observations and Analysis
      During the capture, the following observations were made:
-     * High Volume from a Single Host: 192.168.1.100 was observed making a significantly higher number of DNS queries compared to other hosts on the network. This raised a red flag.
-     * Suspicious Queries: Several queries originating from 192.168.1.100 were made to domains like malicious.com and exfil.badsite.org. While these are simulated, in a real scenario, they would trigger immediate investigation.
+     * High Volume from a Single Host: <IP> was observed making a significantly higher number of DNS queries compared to other hosts on the network. This raised a red flag.
+     * Suspicious Queries: Several queries originating from <IP> were made to domains like malicious.com and exfil.badsite.org. This triggered immediate investigation.
      * Long DNS Queries: Some queries contained unusually long subdomains (e.g., long.string.of.data.exfil.badsite.org). This is often indicative of DNS tunneling for data exfiltration.
-     Example Output Snippet (from output_snippets.txt):
-     10:35:01.987654 IP 192.168.1.100.12345 > 8.8.8.8.53: UDP, length 36
+     Example Output Snippet Here..
+     10:35:01.987654 IP <IP>.12345 > 8.8.8.8.53: UDP, length 36
 (Query: A? malicious.com.)
 
-10:35:02.123456 IP 192.168.1.100.12346 > 8.8.8.8.53: UDP, length 80
+10:35:02.123456 IP <IP>.12346 > 8.8.8.8.53: UDP, length 80
 (Query: A? long.string.of.data.exfil.badsite.org
